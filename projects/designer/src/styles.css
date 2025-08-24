@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+#canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f2f5;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow: auto;
+    /* New properties for zoom */
+    transform-origin: top left;
+    transition: transform 0.1s ease-out;
+}
+.draggable {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, border-radius 0.3s;
+}
+.draggable.selected {
+    border-color: #3b82f6;
+}
+.draggable[contenteditable="true"] {
+    background-color: rgba(59, 130, 246, 0.1);
+    cursor: text;
+}
+.resizer {
+    width: 12px;
+    height: 12px;
+    background: #3b82f6;
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    cursor: se-resize;
+    border-radius: 50%;
+    border: 2px solid white;
+    display: none;
+}
+.draggable.selected .resizer {
+    display: block;
+}
+.snap-line {
+    position: absolute;
+    background-color: #ef4444;
+    display: none;
+    z-index: 9999;
+}
+#snap-line-v { width: 1px; height: 100%; top: 0; }
+#snap-line-h { height: 1px; width: 100%; left: 0; }
+#selection-box {
+    position: absolute;
+    border: 1px dashed #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+    pointer-events: none;
+    z-index: 10001;
+    display: none;
+}
+#layers-list li {
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#layers-list li:hover {
+    background-color: #f3f4f6;
+}
+#layers-list li.selected {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    font-weight: 600;
+}
+#layers-list li.dragging {
+    opacity: 0.5;
+}
+.image-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    cursor: text;
+    user-select: text;
+}
+.screen-box {
+    background-color: #ffffff;
+    border: 2px solid #cbd5e1;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    resize: both;
+    overflow: hidden;
+    position: relative;
+}
+.screen-box::before {
+    content: attr(data-screen-name);
+    position: absolute;
+    top: -24px;
+    left: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+}
