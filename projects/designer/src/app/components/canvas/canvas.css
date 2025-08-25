@@ -1,0 +1,31 @@
+#canvas {
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0; /* Light gray background for visibility */
+    position: relative;
+    overflow: hidden;
+}
+
+#selection-box {
+    border: 1px dashed #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    position: absolute;
+    display: none; /* Hidden by default */
+}
+
+.snap-line {
+    background-color: #ff0000; /* Red snap lines for visibility */
+    position: absolute;
+    display: none; /* Hidden by default */
+    z-index: 100;
+}
+
+#snap-line-v {
+    width: 1px;
+    height: 100%;
+}
+
+#snap-line-h {
+    width: 100%;
+    height: 1px;
+}

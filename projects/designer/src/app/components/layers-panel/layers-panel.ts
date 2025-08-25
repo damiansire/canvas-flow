@@ -1,82 +1,102 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, AfterViewInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { CanvasService } from '../services/canvas.service';
+import { CanvasService } from '../../services/canvas.service';
 
 @Component({
   selector: 'app-layers-panel',
+  standalone: true,
   templateUrl: './layers-panel.html',
   styleUrls: ['./layers-panel.css']
 })
-export class LayersPanelComponent implements OnInit, OnDestroy {
+export class LayersPanelComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  @ViewChild('layersList') layersListRef: ElementRef;
-  private layersList: HTMLElement;
+  @ViewChild('layersList') layersListRef!: ElementRef;
 
-  private subscription: Subscription;
+  private subscription!: Subscription;
 
   constructor(private renderer: Renderer2, private canvasService: CanvasService) { }
 
   ngOnInit() {
     this.subscription = this.canvasService.layersPanelNeedsUpdate$.subscribe(() => {
-      this.renderLayersPanel();
+      this.canvasService.renderLayersPanel();
     });
   }
 
   ngAfterViewInit() {
-    this.layersList = this.layersListRef.nativeElement;
+    this.canvasService.setState({ layersList: this.layersListRef.nativeElement });
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
 
-  renderLayersPanel() {
-    this.layersList.innerHTML = '';
-    const state = this.canvasService.getState();
-    const allElements = [...state.canvas.children].filter(el => (el as HTMLElement).classList.contains('draggable'));
-
-    let elementsToShow = allElements;
-    if (state.isCollisionViewActive && state.selectedElements.length === 1) {
-      const selectedEl = state.selectedElements[0];
-      const rect1 = selectedEl.getBoundingClientRect();
-      const colliding = allElements.filter(otherEl => {
-        if (otherEl === selectedEl) return false;
-        const rect2 = (otherEl as HTMLElement).getBoundingClientRect();
-        return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
-      });
-      elementsToShow = [selectedEl, ...colliding];
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    const draggingItem = this.layersListRef.nativeElement.querySelector('.dragging');
+    const afterElement = this.getDragAfterElement(this.layersListRef.nativeElement, event.clientY);
+    if (afterElement == null) {
+      this.renderer.appendChild(this.layersListRef.nativeElement, draggingItem);
+    } else {
+      this.renderer.insertBefore(this.layersListRef.nativeElement, draggingItem, afterElement);
     }
+  }
 
-    const sortedAll = [...allElements].sort((a, b) => (parseInt((a as HTMLElement).style.zIndex) || 0) - (parseInt((b as HTMLElement).style.zIndex) || 0));
+  onDrop() {
+    this.updateZIndexFromLayers();
+  }
 
-    elementsToShow
-      .sort((a, b) => (parseInt((b as HTMLElement).style.zIndex) || 0) - (parseInt((a as HTMLElement).style.zIndex) || 0))
-      .reverse()
-      .forEach(el => {
-        const li = this.renderer.createElement('li');
-        const layerIndex = sortedAll.indexOf(el);
+  updateZIndexFromLayers() {
+    const layerItems = [...this.layersListRef.nativeElement.querySelectorAll('li')];
+    const totalLayers = layerItems.length;
+    layerItems.forEach((li, index) => {
+      const el = document.getElementById(li.dataset.id!);
+      if (el) {
+        this.renderer.setStyle(el, 'zIndex', (totalLayers - index).toString());
+      }
+    });
+    this.canvasService.renderLayersPanel();
+  }
 
-        if (!(el as HTMLElement).dataset.name || ((el as HTMLElement).dataset.name.endsWith('...') && (el as any).isContentEditable === false)) {
-          if ((el as HTMLElement).dataset.type === 'Text' || (el as HTMLElement).dataset.type === 'Title' || (el as HTMLElement).dataset.type === 'Button') {
-            const text = el.textContent.trim();
-            (el as HTMLElement).dataset.name = text.substring(0, 15) + (text.length > 15 ? '...' : '');
-          } else {
-            (el as HTMLElement).dataset.name = (el as HTMLElement).dataset.screenName || (el as HTMLElement).dataset.type;
-          }
-        }
+  getDragAfterElement(container: HTMLElement, y: number) {
+    const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
 
-        li.textContent = `Layer ${layerIndex}: ${(el as HTMLElement).dataset.name}`;
-        li.dataset.id = el.id;
-        this.renderer.setAttribute(li, 'draggable', 'true');
+    return draggableElements.reduce((closest: { offset: number; element: Element | null }, child: Element) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+  }
 
-        if (state.selectedElements.includes(el as HTMLElement)) {
-          this.renderer.addClass(li, 'selected');
-        }
+  layerUp() {
+    this.moveLayer(1);
+  }
 
-        this.renderer.listen(li, 'click', () => this.canvasService.selectElement(el as HTMLElement, false));
-        this.renderer.listen(li, 'dragstart', () => this.renderer.addClass(li, 'dragging'));
-        this.renderer.listen(li, 'dragend', () => this.renderer.removeClass(li, 'dragging'));
-        this.renderer.appendChild(this.layersList, li);
-      });
+  layerDown() {
+    this.moveLayer(-1);
+  }
+
+  moveLayer(direction: number) {
+    const state = this.canvasService.getState();
+    if (state.selectedElements.length !== 1) return;
+    const selectedId = state.selectedElements[0].id;
+    const layerItems = [...this.layersListRef.nativeElement.querySelectorAll('li')];
+    const currentIndex = layerItems.findIndex(li => li.dataset.id === selectedId);
+
+    if (direction === 1 && currentIndex > 0) {
+      this.renderer.insertBefore(this.layersListRef.nativeElement, layerItems[currentIndex], layerItems[currentIndex - 1]);
+    } else if (direction === -1 && currentIndex < layerItems.length - 1) {
+      this.renderer.insertBefore(this.layersListRef.nativeElement, layerItems[currentIndex + 1], layerItems[currentIndex]);
+    }
+    this.updateZIndexFromLayers();
+  }
+
+  detectCollisions() {
+    const state = this.canvasService.getState();
+    this.canvasService.setState({ isCollisionViewActive: state.selectedElements.length === 1 });
+    this.canvasService.renderLayersPanel();
   }
 }

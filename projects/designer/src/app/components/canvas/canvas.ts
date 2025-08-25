@@ -1,19 +1,20 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, Renderer2, HostListener } from '@angular/core';
-import { CanvasService } from '../services/canvas.service';
-import { ElementService } from '../services/element.service';
+import { CanvasService } from '../../services/canvas.service';
+import { ElementService } from '../../services/element.service';
 
 @Component({
   selector: 'app-canvas',
+  standalone: true,
   templateUrl: './canvas.html',
   styleUrls: ['./canvas.css']
 })
 export class CanvasComponent implements AfterViewInit {
 
-  @ViewChild('canvas') canvasRef: ElementRef;
-  @ViewChild('selectionBox') selectionBoxRef: ElementRef;
-  @ViewChild('snapLineV') snapLineVRef: ElementRef;
-  @ViewChild('snapLineH') snapLineHRef: ElementRef;
-  @ViewChild('zoomLevelDisplay') zoomLevelDisplayRef: ElementRef;
+  @ViewChild('canvas') canvasRef!: ElementRef;
+  @ViewChild('selectionBox') selectionBoxRef!: ElementRef;
+  @ViewChild('snapLineV') snapLineVRef!: ElementRef;
+  @ViewChild('snapLineH') snapLineHRef!: ElementRef;
+  @ViewChild('zoomLevelDisplay') zoomLevelDisplayRef!: ElementRef;
 
   constructor(
     private renderer: Renderer2,
@@ -28,7 +29,7 @@ export class CanvasComponent implements AfterViewInit {
     if (event.key === 'Delete' || event.key === 'Backspace') {
       const state = this.canvasService.getState();
       if (state.selectedElements.length > 0) {
-        state.selectedElements.forEach(el => this.renderer.removeChild(state.canvas, el));
+        state.selectedElements.forEach((el: HTMLElement) => this.renderer.removeChild(state.canvas, el));
         this.canvasService.setState({ selectedElements: [] });
         this.canvasService.updateLayersPanel();
         this.canvasService.updatePropertiesPanel();
@@ -39,8 +40,8 @@ export class CanvasComponent implements AfterViewInit {
       event.preventDefault();
       const state = this.canvasService.getState();
       if (state.selectedElements.length > 0) {
-        const newSelection = [];
-        state.selectedElements.forEach(el => {
+        const newSelection: HTMLElement[] = [];
+        state.selectedElements.forEach((el: HTMLElement) => {
           const clone = el.cloneNode(true) as HTMLElement;
           this.renderer.setAttribute(clone, 'id', `el-${this.canvasService.getState().elementCounter++}`);
           this.renderer.removeClass(clone, 'selected');
@@ -55,7 +56,7 @@ export class CanvasComponent implements AfterViewInit {
           this.renderer.appendChild(state.canvas, clone);
           newSelection.push(clone);
         });
-        state.selectedElements.forEach(el => this.renderer.removeClass(el, 'selected'));
+        state.selectedElements.forEach((el: HTMLElement) => this.renderer.removeClass(el, 'selected'));
         this.canvasService.setState({ selectedElements: newSelection });
         newSelection.forEach(el => this.renderer.addClass(el, 'selected'));
         this.canvasService.updateLayersPanel();
@@ -82,9 +83,9 @@ export class CanvasComponent implements AfterViewInit {
         const defaultWidth = 200;
         const defaultHeight = 150;
         const state = this.canvasService.getState();
-        const canvasRect = state.canvas.getBoundingClientRect();
-        const viewCenterX = (state.main.scrollLeft + canvasRect.width / 2) / state.zoomLevel;
-        const viewCenterY = (state.main.scrollTop + canvasRect.height / 2) / state.zoomLevel;
+        const canvasRect = state.canvas!.getBoundingClientRect();
+        const viewCenterX = (state.main!.scrollLeft + canvasRect.width / 2) / state.zoomLevel;
+        const viewCenterY = (state.main!.scrollTop + canvasRect.height / 2) / state.zoomLevel;
 
         const el = this.elementService.createElement('div', 'p-0 overflow-hidden bg-gray-300 rounded-lg shadow-md relative', '', 'Image', {
           width: `${defaultWidth}px`,
@@ -125,10 +126,10 @@ export class CanvasComponent implements AfterViewInit {
 
     const state = this.canvasService.getState();
     this.renderer.listen(state.main, 'wheel', (event) => this.onWheel(event));
-    this.renderer.listen(state.zoomLevelDisplay.previousElementSibling, 'click', () => this.zoomOut());
-    this.renderer.listen(state.zoomLevelDisplay.nextElementSibling, 'click', () => this.zoomIn());
+    this.renderer.listen(this.zoomLevelDisplayRef.nativeElement.previousElementSibling, 'click', () => this.zoomOut());
+    this.renderer.listen(this.zoomLevelDisplayRef.nativeElement.nextElementSibling, 'click', () => this.zoomIn());
 
-    this.loadCanvasState();
+    this.canvasService.loadCanvasState();
     this.renderer.listen(this.canvasService.getState().canvas, 'mousedown', (event) => this.onCanvasMouseDown(event));
   }
 
@@ -140,12 +141,12 @@ export class CanvasComponent implements AfterViewInit {
       state.selectedElements.forEach(el => this.renderer.removeClass(el, 'selected'));
       this.canvasService.setState({ selectedElements: [] });
     }
-    const canvasRect = state.canvas.getBoundingClientRect();
+    const canvasRect = state.canvas!.getBoundingClientRect();
     const startX = (event.clientX - canvasRect.left) / state.zoomLevel;
     const startY = (event.clientY - canvasRect.top) / state.zoomLevel;
 
-    this.renderer.setStyle(state.selectionBox, 'left', `${event.clientX - state.main.getBoundingClientRect().left}px`);
-    this.renderer.setStyle(state.selectionBox, 'top', `${event.clientY - state.main.getBoundingClientRect().top}px`);
+    this.renderer.setStyle(state.selectionBox, 'left', `${event.clientX - state.main!.getBoundingClientRect().left}px`);
+    this.renderer.setStyle(state.selectionBox, 'top', `${event.clientY - state.main!.getBoundingClientRect().top}px`);
     this.renderer.setStyle(state.selectionBox, 'width', '0px');
     this.renderer.setStyle(state.selectionBox, 'height', '0px');
     this.renderer.setStyle(state.selectionBox, 'display', 'block');
@@ -158,14 +159,14 @@ export class CanvasComponent implements AfterViewInit {
       const newWidth = Math.abs(currentX - startX);
       const newHeight = Math.abs(currentY - startY);
 
-      this.renderer.setStyle(state.selectionBox, 'left', `${newX * state.zoomLevel + (canvasRect.left - state.main.getBoundingClientRect().left)}px`);
-      this.renderer.setStyle(state.selectionBox, 'top', `${newY * state.zoomLevel + (canvasRect.top - state.main.getBoundingClientRect().top)}px`);
+      this.renderer.setStyle(state.selectionBox, 'left', `${newX * state.zoomLevel + (canvasRect.left - state.main!.getBoundingClientRect().left)}px`);
+      this.renderer.setStyle(state.selectionBox, 'top', `${newY * state.zoomLevel + (canvasRect.top - state.main!.getBoundingClientRect().top)}px`);
       this.renderer.setStyle(state.selectionBox, 'width', `${newWidth * state.zoomLevel}px`);
       this.renderer.setStyle(state.selectionBox, 'height', `${newHeight * state.zoomLevel}px`);
 
-      const boxRect = state.selectionBox.getBoundingClientRect();
-      const allElements = [...state.canvas.children].filter(c => (c as HTMLElement).classList.contains('draggable'));
-      allElements.forEach(el => {
+      const boxRect = state.selectionBox!.getBoundingClientRect();
+      const allElements = [...state.canvas!.children].filter(c => (c as HTMLElement).classList.contains('draggable'));
+      allElements.forEach((el: Element) => {
         const elRect = (el as HTMLElement).getBoundingClientRect();
         if (boxRect.left < elRect.right && boxRect.right > elRect.left && boxRect.top < elRect.bottom && boxRect.bottom > elRect.top) {
           if (!state.selectedElements.includes(el as HTMLElement)) {
@@ -180,7 +181,7 @@ export class CanvasComponent implements AfterViewInit {
     }
     const onMouseUp = () => {
       this.renderer.setStyle(state.selectionBox, 'display', 'none');
-      const selectedElements = [...state.canvas.children].filter(c => (c as HTMLElement).classList.contains('selected'));
+      const selectedElements = [...state.canvas!.children].filter(c => (c as HTMLElement).classList.contains('selected'));
       this.canvasService.setState({ selectedElements: selectedElements as HTMLElement[] });
       this.canvasService.updateLayersPanel();
       this.canvasService.updatePropertiesPanel();
@@ -191,54 +192,14 @@ export class CanvasComponent implements AfterViewInit {
     document.addEventListener('mouseup', onMouseUp);
   }
 
-  loadCanvasState() {
-    const savedState = localStorage.getItem('visualDesignerCanvasState');
-    if (!savedState) return;
-
-    const state = JSON.parse(savedState);
-    const canvasState = this.canvasService.getState();
-    canvasState.canvas.innerHTML = '';
-    this.canvasService.setState({ elementCounter: state.counter || 0 });
-
-    state.elements.forEach(elData => {
-      const el = this.renderer.createElement(elData.tag);
-      this.renderer.setAttribute(el, 'class', elData.className);
-      this.renderer.setAttribute(el, 'style', elData.style);
-      el.innerHTML = elData.innerHTML;
-      Object.keys(elData.dataset).forEach(key => {
-        this.renderer.setAttribute(el, `data-${key}`, elData.dataset[key]);
-      });
-      el.id = `el-${this.canvasService.getState().elementCounter++}`;
-
-      const isImageContainer = el.querySelector('img') !== null;
-      this.elementService.setupElement(el, isImageContainer);
-      if (isImageContainer) {
-        const caption = el.querySelector('.image-caption');
-        if (caption) {
-          this.renderer.listen(caption, 'dblclick', (e) => { e.stopPropagation(); this.elementService.makeEditable(caption); });
-        }
-      }
-      this.renderer.appendChild(canvasState.canvas, el);
-    });
-    this.canvasService.updateLayersPanel();
-  }
-
-  setZoom(newZoom: number) {
-    const state = this.canvasService.getState();
-    const zoomLevel = Math.max(0.2, Math.min(newZoom, 3.0)); // Clamp zoom between 20% and 300%
-    this.canvasService.setState({ zoomLevel });
-    this.renderer.setStyle(state.canvas, 'transform', `scale(${zoomLevel})`);
-    state.zoomLevelDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-  }
-
   zoomIn() {
     const state = this.canvasService.getState();
-    this.setZoom(state.zoomLevel + 0.1);
+    this.canvasService.setZoom(state.zoomLevel + 0.1);
   }
 
   zoomOut() {
     const state = this.canvasService.getState();
-    this.setZoom(state.zoomLevel - 0.1);
+    this.canvasService.setZoom(state.zoomLevel - 0.1);
   }
 
   onWheel(event: WheelEvent) {
@@ -247,7 +208,7 @@ export class CanvasComponent implements AfterViewInit {
       const state = this.canvasService.getState();
       const zoomIntensity = 0.05;
       const direction = event.deltaY < 0 ? 1 : -1;
-      this.setZoom(state.zoomLevel + direction * zoomIntensity);
+      this.canvasService.setZoom(state.zoomLevel + direction * zoomIntensity);
     }
   }
 }

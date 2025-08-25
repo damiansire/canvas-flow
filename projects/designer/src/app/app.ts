@@ -1,9 +1,12 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CanvasEditor } from './components/canvas-editor/canvas-editor';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [CanvasEditor],  // provide the CanvasService and ElementService to the component
+  providers: [],
+
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
