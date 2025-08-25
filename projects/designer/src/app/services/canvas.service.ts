@@ -143,6 +143,7 @@ export class CanvasService {
         { width: `${width}px`, height: `${height}px` },
         { name: screenName, screenName: screenName }
     );
+    this.elementService.setupElement(el);
     state.canvas?.appendChild(el);
   }
 

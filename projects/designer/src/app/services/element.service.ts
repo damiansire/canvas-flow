@@ -44,6 +44,32 @@ export class ElementService {
     const resizer = this.renderer.createElement('div');
     this.renderer.addClass(resizer, 'resizer');
     this.renderer.appendChild(el, resizer);
+
+    // Add lock icon
+    const lockIcon = this.renderer.createElement('div');
+    this.renderer.addClass(lockIcon, 'lock-icon');
+    this.renderer.setStyle(lockIcon, 'position', 'absolute');
+    this.renderer.setStyle(lockIcon, 'top', '5px');
+    this.renderer.setStyle(lockIcon, 'right', '5px');
+    this.renderer.setStyle(lockIcon, 'cursor', 'pointer');
+    this.renderer.setStyle(lockIcon, 'z-index', '1000');
+    this.renderer.setStyle(lockIcon, 'background-color', 'rgba(255,255,255,0.7)');
+    this.renderer.setStyle(lockIcon, 'padding', '2px');
+    this.renderer.setStyle(lockIcon, 'border-radius', '3px');
+    this.renderer.setProperty(lockIcon, 'innerHTML', '🔒'); // Default unlocked
+    this.renderer.appendChild(el, lockIcon);
+
+    // Set initial locked state
+    this.renderer.setAttribute(el, 'data-locked', 'false');
+
+    // Toggle lock state on click
+    this.renderer.listen(lockIcon, 'click', (event) => {
+      event.stopPropagation(); // Prevent dragging when clicking lock icon
+      const isLocked = el.dataset['locked'] === 'true';
+      this.renderer.setAttribute(el, 'data-locked', String(!isLocked));
+      this.renderer.setProperty(lockIcon, 'innerHTML', !isLocked ? '🔓' : '🔒');
+    });
+
     this.makeDraggable(el);
     this.makeResizable(el, resizer, isImageContainer);
     if (!isImageContainer && el.dataset['type'] !== 'Image') {
@@ -110,6 +136,8 @@ export class ElementService {
   makeDraggable(element: HTMLElement) {
     this.renderer.listen(element, 'mousedown', (e: MouseEvent) => {
       if ((e.target as HTMLElement).classList.contains('resizer') || (e.target as HTMLElement).isContentEditable) return;
+      // Add check for locked state
+      if (element.dataset['locked'] === 'true') return; // This line was added in previous step
       e.preventDefault();
       e.stopPropagation();
       this.getCanvasService().selectElement(element, e.shiftKey);
