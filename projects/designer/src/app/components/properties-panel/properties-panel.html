@@ -1,6 +1,155 @@
-<aside #propertiesPanel id="properties-panel" class="w-64 bg-white shadow-lg p-4" *ngIf="state.selectedElements().length === 1">
-  <h2 class="text-lg font-bold text-gray-700 mb-4">Properties</h2>
-  
-  <pre>{{ state.selectedElements()[0] | json }}</pre>
+<div class="properties-panel">
+  <div class="properties-header">
+    <h3 class="properties-title">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+        </path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+        </path>
+      </svg>
+      Propiedades
+    </h3>
+    <span class="properties-subtitle">Edita las propiedades del elemento seleccionado</span>
+  </div>
 
-</aside>
+  <div class="properties-content">
+    @if (state.selectedElements().length === 0) {
+    <div class="empty-properties">
+      <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+        </path>
+      </svg>
+      <p class="empty-text">No hay elementos seleccionados</p>
+      <p class="empty-subtext">Selecciona un elemento para ver sus propiedades</p>
+    </div>
+    } @else if (state.selectedElements().length === 1) {
+    @for (element of state.selectedElements(); track element.id) {
+    <div class="element-properties fade-in">
+      <!-- Información del elemento -->
+      <div class="property-group">
+        <h3 class="property-group-title">Elemento</h3>
+        <div class="property-item">
+          <span class="property-label">Tipo</span>
+          <span class="property-value">{{ element.dataset['type'] || 'Desconocido' }}</span>
+        </div>
+        <div class="property-item">
+          <span class="property-label">ID</span>
+          <span class="property-value">{{ element.id }}</span>
+        </div>
+        <div class="property-item">
+          <span class="property-label">Nombre</span>
+          <input type="text" class="property-input" [value]="element.dataset['name'] || ''"
+            placeholder="Nombre del elemento" (input)="updateElementName(element.id, $event)">
+        </div>
+      </div>
+
+      <!-- Posición y tamaño -->
+      <div class="property-group">
+        <h3 class="property-group-title">Posición y Tamaño</h3>
+        <div class="property-item">
+          <span class="property-label">X</span>
+          <input type="number" class="property-input" [value]="parseFloat(element.style.left || '0')" placeholder="0"
+            (input)="updateElementPosition(element.id, 'left', $event)">
+        </div>
+        <div class="property-item">
+          <span class="property-label">Y</span>
+          <input type="number" class="property-input" [value]="parseFloat(element.style.top || '0')" placeholder="0"
+            (input)="updateElementPosition(element.id, 'top', $event)">
+        </div>
+        <div class="property-item">
+          <span class="property-label">Ancho</span>
+          <input type="number" class="property-input" [value]="parseFloat(element.style.width || '0')"
+            placeholder="Auto" (input)="updateElementSize(element.id, 'width', $event)">
+        </div>
+        <div class="property-item">
+          <span class="property-label">Alto</span>
+          <input type="number" class="property-input" [value]="parseFloat(element.style.height || '0')"
+            placeholder="Auto" (input)="updateElementSize(element.id, 'height', $event)">
+        </div>
+      </div>
+
+      <!-- Estilos -->
+      <div class="property-group">
+        <h3 class="property-group-title">Estilos</h3>
+        <div class="property-item">
+          <span class="property-label">Z-Index</span>
+          <input type="number" class="property-input" [value]="parseInt(element.style.zIndex || '1')" placeholder="1"
+            (input)="updateElementStyle(element.id, 'zIndex', $event)">
+        </div>
+        <div class="property-item">
+          <span class="property-label">Opacidad</span>
+          <input type="range" class="property-range" min="0" max="1" step="0.1"
+            [value]="parseFloat(element.style.opacity || '1')"
+            (input)="updateElementStyle(element.id, 'opacity', $event)">
+          <span class="property-range-value">{{ parseFloat(element.style.opacity || '1') }}</span>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="property-group">
+        <h3 class="property-group-title">Acciones</h3>
+        <div class="property-actions">
+          <button class="btn btn-secondary" (click)="duplicateElement(element.id)" title="Duplicar elemento">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+              </path>
+            </svg>
+            Duplicar
+          </button>
+
+          <button class="btn btn-danger" (click)="deleteElement(element.id)" title="Eliminar elemento">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+              </path>
+            </svg>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+    } @else {
+    <div class="multiple-selection">
+      <div class="selection-info">
+        <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="selection-title">{{ state.selectedElements().length }} elementos seleccionados</h3>
+        <p class="selection-subtitle">Selecciona un solo elemento para editar sus propiedades</p>
+      </div>
+
+      <div class="selection-actions">
+        <button class="btn btn-primary" (click)="alignElements('v')" title="Alinear verticalmente">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Alinear Vertical
+        </button>
+
+        <button class="btn btn-primary" (click)="alignElements('h')" title="Alinear horizontalmente">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16">
+            </path>
+          </svg>
+          Alinear Horizontal
+        </button>
+
+        <button class="btn btn-secondary" (click)="groupElements()" title="Agrupar elementos">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+            </path>
+          </svg>
+          Agrupar
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+</div>

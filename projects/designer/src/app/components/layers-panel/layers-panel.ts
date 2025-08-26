@@ -11,4 +11,18 @@ import { CanvasStateService } from '../../services/canvas-state';
 })
 export class LayersPanelComponent {
   readonly state = inject(CanvasStateService);
+
+  toggleLock(elementId: string, event: Event): void {
+    event.stopPropagation();
+    // Aquí implementarías la lógica para alternar el bloqueo
+    // Por ahora solo seleccionamos el elemento
+    this.state.selectElement(elementId, false);
+  }
+
+  deleteElement(elementId: string, event: Event): void {
+    event.stopPropagation();
+    // Seleccionar el elemento y luego eliminarlo
+    this.state.selectElement(elementId, false);
+    this.state.deleteSelectedElements();
+  }
 }

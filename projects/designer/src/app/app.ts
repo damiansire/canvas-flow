@@ -1,15 +1,15 @@
-import { Component, signal } from '@angular/core';
-import { CanvasEditor } from './components/canvas-editor/canvas-editor';
+import { Component } from '@angular/core';
+import { ToolbarComponent } from './components/toolbar/toolbar';
+import { CanvasComponent } from './components/canvas/canvas';
+import { PropertiesPanelComponent } from './components/properties-panel/properties-panel';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CanvasEditor],
-  providers: [],
-
+  imports: [ToolbarComponent, CanvasComponent, PropertiesPanelComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  protected readonly title = signal('designer');
+export class AppComponent {
+  title = 'canvas-flow';
 }

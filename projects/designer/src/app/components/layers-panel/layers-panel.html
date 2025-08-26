@@ -1,13 +1,102 @@
-<div class="pt-4 border-t flex-grow flex flex-col min-h-0">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-gray-700">Layers</h2>
-    </div>
-    <ul #layersList id="layers-list" class="space-y-2 overflow-y-auto flex-grow">
-        <li *ngFor="let element of state.elements()"
-            [attr.data-id]="element.id"
+<div class="layers-panel">
+  <div class="layers-header">
+    <h3 class="layers-title">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+      </svg>
+      Capas
+    </h3>
+    <span class="layers-count">{{ state.elements().length }} elementos</span>
+  </div>
+  
+  <div class="layers-content">
+    @if (state.elements().length === 0) {
+      <div class="empty-state">
+        <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <p class="empty-text">No hay elementos</p>
+        <p class="empty-subtext">Agrega elementos desde el toolbar</p>
+      </div>
+    } @else {
+      <ul id="layers-list" class="layers-list">
+        @for (element of state.elements(); track element.id; let i = $index) {
+          <li 
             [class.selected]="state.selectedElementIds().includes(element.id)"
-            (click)="state.selectElement(element.id, false)">
-            {{ element.dataset['name'] || element.dataset['type'] || element.tag }}
-        </li>
-    </ul>
+            [class.dragging]="false"
+            (click)="state.selectElement(element.id, $event.shiftKey)"
+            [title]="element.dataset['name'] || element.dataset['type']"
+            class="layer-item fade-in"
+            [style.animation-delay]="(i * 0.05) + 's'">
+            
+            <div class="layer-info">
+              <div class="layer-icon">
+                @switch (element.dataset['type']) {
+                  @case ('Button') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                  }
+                  @case ('Title') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                    </svg>
+                  }
+                  @case ('Text') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  }
+                  @case ('Box') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                  }
+                  @case ('Image') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  }
+                  @default {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                  }
+                }
+              </div>
+              
+              <div class="layer-details">
+                <span class="layer-name">{{ element.dataset['name'] || element.dataset['type'] }}</span>
+                <span class="layer-type">{{ element.dataset['type'] }}</span>
+              </div>
+            </div>
+            
+            <div class="layer-actions">
+              <button 
+                class="layer-action-btn"
+                (click)="toggleLock(element.id, $event)"
+                [title]="element.isLocked ? 'Desbloquear' : 'Bloquear'">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  @if (element.isLocked) {
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                  } @else {
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                  }
+                </svg>
+              </button>
+              
+              <button 
+                class="layer-action-btn"
+                (click)="deleteElement(element.id, $event)"
+                title="Eliminar">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
 </div>

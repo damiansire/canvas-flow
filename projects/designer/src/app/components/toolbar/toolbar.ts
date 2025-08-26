@@ -14,40 +14,42 @@ export class ToolbarComponent {
   private readonly canvasState = inject(CanvasStateService);
 
   addElement(type: string) {
+    console.log('Adding element of type:', type);
+
     let element: Omit<CanvasElement, 'id' | 'isLocked'>;
 
     switch (type) {
       case 'Button':
         element = {
           tag: 'div',
-          className: 'bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md',
-          innerHTML: '<div class="pointer-events-none">Click me</div>',
+          className: 'bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg shadow-md font-medium transition-colors',
+          innerHTML: '<div class="pointer-events-none text-center">Click me</div>',
           dataset: { type: 'Button' },
-          style: { width: 'fit-content' }
+          style: { width: 'fit-content', minWidth: '120px' }
         };
         break;
       case 'Title':
         element = {
           tag: 'h1',
-          className: 'text-4xl font-bold text-gray-800 p-2',
-          innerHTML: 'Title',
+          className: 'text-4xl font-bold text-gray-900 p-3',
+          innerHTML: 'Título Principal',
           dataset: { type: 'Title' },
-          style: {}
+          style: { width: 'fit-content' }
         };
         break;
       case 'Text':
         element = {
           tag: 'p',
-          className: 'text-gray-700 p-2 w-64',
-          innerHTML: 'Example paragraph.',
+          className: 'text-gray-700 text-lg leading-relaxed p-3 w-80',
+          innerHTML: 'Este es un párrafo de ejemplo. Puedes hacer doble clic para editarlo.',
           dataset: { type: 'Text' },
-          style: {}
+          style: { width: '320px' }
         };
         break;
       case 'Box':
         element = {
           tag: 'div',
-          className: 'bg-white border-2 border-gray-400 rounded-lg',
+          className: 'bg-white border-2 border-gray-300 rounded-lg shadow-sm',
           innerHTML: '',
           dataset: { type: 'Box' },
           style: { width: '200px', height: '200px' }
@@ -56,16 +58,20 @@ export class ToolbarComponent {
       case 'Image':
         element = {
           tag: 'div',
-          className: 'p-0 overflow-hidden bg-gray-300 rounded-lg shadow-md relative',
-          innerHTML: '<img src="https://placehold.co/200x150/e0e0e0/333?text=Image" class="w-full h-full object-cover pointer-events-none"><div class="image-caption" contenteditable="true">Caption</div>',
+          className: 'p-0 overflow-hidden bg-gray-100 rounded-lg shadow-md relative',
+          innerHTML: '<img src="https://placehold.co/200x150/e0e0e0/333?text=Image" class="w-full h-full object-cover pointer-events-none"><div class="image-caption" contenteditable="true">Descripción de la imagen</div>',
           dataset: { type: 'Image' },
           style: { width: '200px', height: '150px' }
         };
         break;
       default:
+        console.log('Unknown element type:', type);
         return;
     }
+
+    console.log('Created element:', element);
     this.canvasState.addElement(element);
+    console.log('Element added to canvas state');
   }
 
   addScreen(value: string) {
@@ -75,11 +81,11 @@ export class ToolbarComponent {
     if (!width || !height) return;
 
     const element: Omit<CanvasElement, 'id' | 'isLocked'> = {
-        tag: 'div',
-        className: 'bg-white border-2 border-gray-400 rounded-lg screen-box',
-        innerHTML: '',
-        dataset: { type: 'Pantalla', name: screenName, screenName: screenName },
-        style: { width: `${width}px`, height: `${height}px` }
+      tag: 'div',
+      className: 'bg-white border-2 border-gray-400 rounded-lg screen-box',
+      innerHTML: '',
+      dataset: { type: 'Pantalla', name: screenName, screenName: screenName },
+      style: { width: `${width}px`, height: `${height}px` }
     };
     this.canvasState.addElement(element);
   }

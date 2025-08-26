@@ -1,0 +1,238 @@
+.layers-panel {
+  background: var(--surface-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.layers-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layers-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.layers-count {
+  font-size: 12px;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.layers-content {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Estado vacío */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state svg {
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.empty-subtext {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* Lista de capas */
+.layers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer-item {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.layer-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+}
+
+.layer-item.selected {
+  border-color: var(--primary-color);
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.layer-item.dragging {
+  opacity: 0.6;
+  transform: rotate(2deg);
+}
+
+/* Información de la capa */
+.layer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.layer-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--background-color);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.layer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.layer-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layer-type {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Acciones de la capa */
+.layer-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.layer-action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary);
+}
+
+.layer-action-btn:hover {
+  background: var(--background-color);
+  color: var(--text-primary);
+}
+
+.layer-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar personalizado */
+.layers-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.layers-content::-webkit-scrollbar-track {
+  background: var(--background-color);
+  border-radius: 3px;
+}
+
+.layers-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.layers-content::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layers-panel {
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .layers-header {
+    padding: 12px 16px;
+  }
+  
+  .layers-content {
+    padding: 12px;
+  }
+  
+  .layer-item {
+    padding: 10px;
+  }
+}

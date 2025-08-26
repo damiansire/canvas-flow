@@ -1,31 +1,460 @@
+/* Canvas principal */
 #canvas {
     width: 100%;
     height: 100%;
-    background-color: #f0f0f0; /* Light gray background for visibility */
+    min-height: 600px;
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.05) 1px, transparent 0);
+    background-size: 20px 20px;
     position: relative;
+    overflow: auto;
+    transform-origin: top left;
+    transition: transform 0.1s ease-out;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    cursor: default;
+    display: block;
+}
+
+/* Estilos específicos para elementos en el canvas */
+#canvas .draggable {
+    background: transparent;
+    position: absolute;
+    cursor: grab;
+    user-select: none;
+    transition: var(--transition);
+}
+
+#canvas .draggable:active {
+    cursor: grabbing;
+}
+
+/* Cajas y contenedores */
+#canvas .draggable[data-type="Box"] {
+    background: var(--surface-color) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Imágenes */
+#canvas .draggable[data-type="Image"] {
+    background: var(--surface-color) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Botones */
+#canvas .draggable[data-type="Button"] {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+    border-radius: var(--radius);
+}
+
+#canvas .draggable[data-type="Button"]:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Títulos */
+#canvas .draggable[data-type="Title"] {
+    background: transparent !important;
+    color: #1e293b !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: none !important;
+    font-weight: bold;
+}
+
+/* Texto */
+#canvas .draggable[data-type="Text"] {
+    background: transparent !important;
+    color: #475569 !important;
+    border: none !important;
+    line-height: 1.6;
+}
+
+/* Elementos seleccionados */
+#canvas .draggable.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--shadow-md);
+}
+
+/* Elementos en modo edición */
+#canvas .draggable[contenteditable="true"] {
+    background-color: rgba(59, 130, 246, 0.05);
+    border-color: var(--primary-color);
+    outline: none;
+    border-radius: var(--radius);
+}
+
+/* Canvas en modo zoom */
+#canvas.zoomed {
+    cursor: grab;
+}
+
+#canvas.zoomed:active {
+    cursor: grabbing;
+}
+
+/* Contenedor del canvas */
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
     overflow: hidden;
+    display: block;
 }
 
-#selection-box {
-    border: 1px dashed #007bff;
-    background-color: rgba(0, 123, 255, 0.1);
-    position: absolute;
-    display: none; /* Hidden by default */
+/* Canvas section */
+.canvas-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    min-height: 600px;
 }
 
-.snap-line {
-    background-color: #ff0000; /* Red snap lines for visibility */
+/* Controles de zoom */
+.zoom-controls {
     position: absolute;
-    display: none; /* Hidden by default */
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     z-index: 100;
 }
 
+.zoom-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+}
+
+.zoom-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-level {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+}
+
+/* Caja de selección */
+#selection-box {
+    border: 2px dashed var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.05);
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    z-index: 10001;
+    border-radius: var(--radius);
+}
+
+/* Líneas de snap */
+.snap-line {
+    background-color: var(--accent-color);
+    position: absolute;
+    display: none;
+    z-index: 9999;
+    opacity: 0.8;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
 #snap-line-v {
+    width: 2px;
+    height: 100%;
+    top: 0;
+}
+
+#snap-line-h {
+    height: 2px;
+    width: 100%;
+    left: 0;
+}
+
+/* Indicador de posición del mouse */
+.mouse-position {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    opacity: 0.8;
+}
+
+/* Guías de alineación */
+.alignment-guides {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+.alignment-guide {
+    position: absolute;
+    background: var(--primary-color);
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.alignment-guide.vertical {
     width: 1px;
     height: 100%;
 }
 
-#snap-line-h {
-    width: 100%;
+.alignment-guide.horizontal {
     height: 1px;
+    width: 100%;
+}
+
+.alignment-guide.active {
+    opacity: 1;
+    background: var(--accent-color);
+}
+
+/* Indicador de grid */
+.grid-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-secondary);
+    font-size: 12px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Estados del canvas */
+.canvas-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-secondary);
+}
+
+.canvas-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.canvas-loading-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Modo oscuro */
+.canvas-dark {
+    background-color: #1e293b;
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0);
+}
+
+/* Modo de presentación */
+.canvas-presentation {
+    background-color: #000;
+    background-image: none;
+}
+
+.canvas-presentation .draggable {
+    box-shadow: none;
+    border: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .zoom-controls {
+        top: 10px;
+        right: 10px;
+    }
+
+    .zoom-level {
+        top: 10px;
+        left: 10px;
+    }
+
+    .mouse-position {
+        bottom: 10px;
+        left: 10px;
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .zoom-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .zoom-controls {
+        top: 5px;
+        right: 5px;
+        gap: 4px;
+    }
+
+    .zoom-level {
+        top: 5px;
+        left: 5px;
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+
+    .mouse-position {
+        bottom: 5px;
+        left: 5px;
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .zoom-btn {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Animaciones */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Estados de hover y focus */
+#canvas:focus {
+    outline: none;
+}
+
+#canvas:focus-visible {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Cursor personalizado para diferentes herramientas */
+#canvas.tool-select {
+    cursor: default;
+}
+
+#canvas.tool-move {
+    cursor: grab;
+}
+
+#canvas.tool-move:active {
+    cursor: grabbing;
+}
+
+#canvas.tool-text {
+    cursor: text;
+}
+
+#canvas.tool-shape {
+    cursor: crosshair;
+}
+
+/* Indicadores de estado */
+.canvas-status {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    z-index: 1000;
+    max-width: 300px;
+}
+
+.canvas-status-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    color: var(--primary-color);
+}
+
+.canvas-status-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.canvas-status-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
 }

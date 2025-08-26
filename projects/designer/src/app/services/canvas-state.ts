@@ -20,7 +20,7 @@ export class CanvasStateService {
 
   //  Señales de Estado Privadas 
   private readonly _zoomLevel = signal(1.0);
-  private readonly _elementCounter = signal(0); 
+  private readonly _elementCounter = signal(0);
   private readonly _elements = signal<CanvasElement[]>([]);
   private readonly _selectedElementIds = signal<string[]>([]);
 
@@ -52,7 +52,7 @@ export class CanvasStateService {
         return [elementId];
       }
       return currentSelection.includes(elementId)
-       ? currentSelection.filter(id => id!== elementId)
+        ? currentSelection.filter(id => id !== elementId)
         : [...currentSelection, elementId];
     });
   }
@@ -64,34 +64,42 @@ export class CanvasStateService {
   updateElementPosition(id: string, left: string, top: string): void {
     this._elements.update(elements =>
       elements.map(el =>
-        el.id === id? {...el, style: {...el.style, left, top } } : el
+        el.id === id ? { ...el, style: { ...el.style, left, top } } : el
       )
     );
   }
 
   deleteSelectedElements(): void {
     const idsToDelete = new Set(this._selectedElementIds());
-    this._elements.update(elements => elements.filter(el =>!idsToDelete.has(el.id)));
+    this._elements.update(elements => elements.filter(el => !idsToDelete.has(el.id)));
     this.clearSelection();
   }
 
   addElement(partialElement: Omit<CanvasElement, 'id' | 'isLocked'>): void {
     const newId = `el-${this._elementCounter()}`;
     const newElement: CanvasElement = {
-     ...partialElement,
+      ...partialElement,
       id: newId,
       isLocked: false,
       style: {
-       ...partialElement.style,
+        ...partialElement.style,
         position: 'absolute',
         left: partialElement.style.left || '50px',
         top: partialElement.style.top || '50px',
         zIndex: `${this._elements().length + 1}`
       }
     };
+
+    console.log('Adding new element:', newElement);
+    console.log('Element type:', partialElement.dataset?.type);
+    console.log('Element tag:', partialElement.tag);
+
     this._elements.update(elements => [...elements, newElement]);
     this._elementCounter.update(c => c + 1);
     this.selectElement(newId, false);
+
+    console.log('Total elements after adding:', this._elements().length);
+    console.log('All elements:', this._elements());
   }
 
   loadState(): void {

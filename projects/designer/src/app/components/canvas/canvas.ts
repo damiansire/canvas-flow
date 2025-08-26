@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from "@angular/core";
+import { Component, ChangeDetectionStrategy, inject, OnInit } from "@angular/core";
 import { CanvasStateService } from "../../services/canvas-state";
 import { Draggable } from "../../directives/draggable";
 import { SetupElementDirective } from "../../directives/setup-element.directive";
@@ -15,9 +15,15 @@ import { SetupElementDirective } from "../../directives/setup-element.directive"
     '(click)': 'onCanvasClick($event)',
   }
 })
-export class CanvasComponent {
+export class CanvasComponent implements OnInit {
   // Inyectar el servicio de estado. Es público para que la plantilla pueda acceder a él.
   readonly state = inject(CanvasStateService);
+
+  ngOnInit() {
+    console.log('Canvas component initialized');
+    console.log('Initial elements:', this.state.elements());
+    console.log('Initial zoom level:', this.state.zoomLevel());
+  }
 
   onKeyDown(event: KeyboardEvent): void {
     if ((document.activeElement as HTMLElement).isContentEditable) return;
