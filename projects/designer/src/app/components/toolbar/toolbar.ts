@@ -1,6 +1,6 @@
-import { Component, Renderer2 } from '@angular/core';
-import { CanvasService } from '../../services/canvas.service';
+import { Component, Renderer2, inject } from '@angular/core';
 import { LayersPanelComponent } from '../layers-panel/layers-panel';
+import { CanvasStateService, CanvasElement } from '../../services/canvas-state';
 
 @Component({
   selector: 'app-toolbar',
@@ -10,34 +10,103 @@ import { LayersPanelComponent } from '../layers-panel/layers-panel';
   styleUrls: ['./toolbar.css']
 })
 export class ToolbarComponent {
-
-  constructor(
-    private renderer: Renderer2,
-    private canvasService: CanvasService
-  ) { }
+  private readonly renderer = inject(Renderer2);
+  private readonly canvasState = inject(CanvasStateService);
 
   addElement(type: string) {
-    this.canvasService.addElement(type);
+    let element: Omit<CanvasElement, 'id' | 'isLocked'>;
+
+    switch (type) {
+      case 'Button':
+        element = {
+          tag: 'button',
+          className: 'bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md',
+          innerHTML: 'Click me',
+          dataset: { type: 'Button' },
+          style: {}
+        };
+        break;
+      case 'Title':
+        element = {
+          tag: 'h1',
+          className: 'text-4xl font-bold text-gray-800 p-2',
+          innerHTML: 'Title',
+          dataset: { type: 'Title' },
+          style: {}
+        };
+        break;
+      case 'Text':
+        element = {
+          tag: 'p',
+          className: 'text-gray-700 p-2 w-64',
+          innerHTML: 'Example paragraph.',
+          dataset: { type: 'Text' },
+          style: {}
+        };
+        break;
+      case 'Box':
+        element = {
+          tag: 'div',
+          className: 'bg-white border-2 border-gray-400 rounded-lg',
+          innerHTML: '',
+          dataset: { type: 'Box' },
+          style: { width: '200px', height: '200px' }
+        };
+        break;
+      case 'Image':
+        element = {
+          tag: 'div',
+          className: 'p-0 overflow-hidden bg-gray-300 rounded-lg shadow-md relative',
+          innerHTML: '<img src="https://placehold.co/200x150/e0e0e0/333?text=Image" class="w-full h-full object-cover pointer-events-none"><div class="image-caption" contenteditable="true">Caption</div>',
+          dataset: { type: 'Image' },
+          style: { width: '200px', height: '150px' }
+        };
+        break;
+      default:
+        return;
+    }
+    this.canvasState.addElement(element);
   }
 
   addScreen(value: string) {
-    this.canvasService.addScreen(value);
+    const [width, height] = value.split('x');
+    const screenName = `Screen ${width}x${height}`;
+
+    if (!width || !height) return;
+
+    const element: Omit<CanvasElement, 'id' | 'isLocked'> = {
+        tag: 'div',
+        className: 'bg-white border-2 border-gray-400 rounded-lg screen-box',
+        innerHTML: '',
+        dataset: { type: 'Pantalla', name: screenName, screenName: screenName },
+        style: { width: `${width}px`, height: `${height}px` }
+    };
+    this.canvasState.addElement(element);
   }
 
   align(direction: string) {
-    this.canvasService.align(direction);
+    this.canvasState.alignSelectedElements(direction as 'v' | 'h');
   }
 
   distribute(direction: string) {
-    this.canvasService.distribute(direction);
+    this.canvasState.distributeSelectedElements(direction as 'v' | 'h');
   }
 
   groupSelection() {
-    this.canvasService.groupSelection();
+    this.canvasState.groupSelectedElements();
   }
 
   saveCanvas(event: Event) {
-    this.canvasService.saveCanvasState(event);
+    this.canvasState.saveState();
+    const button = event.target as HTMLElement;
+    button.textContent = 'Saved!';
+    button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+    button.classList.add('bg-green-500');
+    setTimeout(() => {
+      button.textContent = 'Save Progress';
+      button.classList.remove('bg-green-500');
+      button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    }, 1500);
   }
 
   clearCanvas() {
@@ -66,7 +135,7 @@ export class ToolbarComponent {
     const cancelClearBtn = document.getElementById('cancel-clear');
 
     this.renderer.listen(confirmClearBtn, 'click', () => {
-      this.canvasService.clearCanvas();
+      this.canvasState.clear();
       this.renderer.removeChild(document.body, modal);
     });
 

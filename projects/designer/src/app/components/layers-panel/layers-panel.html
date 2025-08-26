@@ -1,11 +1,13 @@
 <div class="pt-4 border-t flex-grow flex flex-col min-h-0">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-bold text-gray-700">Layers</h2>
-        <div class="space-x-2">
-            <button id="layer-up" title="Layer Up" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">▲</button>
-            <button id="layer-down" title="Layer Down" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">▼</button>
-            <button id="detect-collisions" title="Show Collisions Only" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">💥</button>
-        </div>
     </div>
-    <ul #layersList id="layers-list" class="space-y-2 overflow-y-auto flex-grow"></ul>
+    <ul #layersList id="layers-list" class="space-y-2 overflow-y-auto flex-grow">
+        <li *ngFor="let element of state.elements()"
+            [attr.data-id]="element.id"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            (click)="state.selectElement(element.id, false)">
+            {{ element.dataset['name'] || element.dataset['type'] || element.tag }}
+        </li>
+    </ul>
 </div>

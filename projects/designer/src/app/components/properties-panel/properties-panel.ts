@@ -1,32 +1,14 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, AfterViewInit } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { CanvasService } from '../../services/canvas.service';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CanvasStateService } from '../../services/canvas-state';
 
 @Component({
   selector: 'app-properties-panel',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './properties-panel.html',
   styleUrls: ['./properties-panel.css']
 })
-export class PropertiesPanelComponent implements OnInit, OnDestroy, AfterViewInit {
-
-  @ViewChild('propertiesPanel') propertiesPanelRef!: ElementRef;
-
-  private subscription!: Subscription;
-
-  constructor(private renderer: Renderer2, private canvasService: CanvasService) { }
-
-  ngOnInit() {
-    this.subscription = this.canvasService.propertiesPanelNeedsUpdate$.subscribe(() => {
-      this.canvasService.renderPropertiesPanel();
-    });
-  }
-
-  ngAfterViewInit() {
-    this.canvasService.setState({ propertiesPanel: this.propertiesPanelRef.nativeElement });
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-  }
+export class PropertiesPanelComponent {
+  readonly state = inject(CanvasStateService);
 }

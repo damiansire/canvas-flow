@@ -1,1 +1,6 @@
-<aside #propertiesPanel id="properties-panel" class="w-64 bg-white shadow-lg p-4 hidden"></aside>
+<aside #propertiesPanel id="properties-panel" class="w-64 bg-white shadow-lg p-4" *ngIf="state.selectedElements().length === 1">
+  <h2 class="text-lg font-bold text-gray-700 mb-4">Properties</h2>
+  
+  <pre>{{ state.selectedElements()[0] | json }}</pre>
+
+</aside>

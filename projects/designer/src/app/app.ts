@@ -4,7 +4,7 @@ import { CanvasEditor } from './components/canvas-editor/canvas-editor';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CanvasEditor],  // provide the CanvasService and ElementService to the component
+  imports: [CanvasEditor],
   providers: [],
 
   templateUrl: './app.html',

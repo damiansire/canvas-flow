@@ -1,12 +1,18 @@
 <main class="flex-1 h-full w-full relative">
-    <div #canvas id="canvas"></div>
-    <div #selectionBox id="selection-box"></div>
-    <div #snapLineV id="snap-line-v" class="snap-line"></div>
-    <div #snapLineH id="snap-line-h" class="snap-line"></div>
-    <!-- Zoom Controls -->
-    <div id="zoom-controls" class="absolute bottom-4 right-4 bg-white shadow-lg rounded-lg p-1 flex items-center space-x-1 z-50">
-        <button id="zoom-out" class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center font-bold text-lg">-</button>
-        <span #zoomLevelDisplay id="zoom-level" class="text-sm font-medium w-14 text-center">100%</span>
-        <button id="zoom-in" class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center font-bold text-lg">+</button>
-    </div>
+  <div #canvas id="canvas" [style.transform]="state.canvasTransform()">
+    
+    @for (element of state.elements(); track element.id) {
+      <div
+        [id]="element.id"
+        [className]="element.className"
+        [class.selected]="state.selectedElementIds().includes(element.id)"
+        [style]="element.style"
+        [innerHTML]="element.innerHTML"
+        [appDraggable]="element.id"
+        [appSetupElement]="element"
+        (click)="state.selectElement(element.id, $event.shiftKey)">
+      </div>
+    }
+
+  </div>
 </main>

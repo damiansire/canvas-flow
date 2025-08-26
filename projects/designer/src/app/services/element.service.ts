@@ -1,5 +1,5 @@
 import { Injectable, RendererFactory2, Injector, Renderer2 } from '@angular/core';
-import { CanvasService } from './canvas.service';
+import { CanvasStateService } from './canvas-state';
 
 @Injectable({
   providedIn: 'root'
@@ -7,20 +7,20 @@ import { CanvasService } from './canvas.service';
 export class ElementService {
 
   private renderer: Renderer2;
-  private canvasService!: CanvasService;
+  private canvasState!: CanvasStateService;
 
   constructor(
     private rendererFactory: RendererFactory2,
     private injector: Injector
-  ) { 
+  ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
   }
 
-  private getCanvasService(): CanvasService {
-    if (!this.canvasService) {
-      this.canvasService = this.injector.get(CanvasService);
+  private getCanvasState(): CanvasStateService {
+    if (!this.canvasState) {
+      this.canvasState = this.injector.get(CanvasStateService);
     }
-    return this.canvasService;
+    return this.canvasState;
   }
 
   createElement(tag: string, classes: string, content: string, type: string, customStyles: any = {}, dataset: any = {}): HTMLElement {
@@ -70,7 +70,6 @@ export class ElementService {
       this.renderer.setProperty(lockIcon, 'innerHTML', !isLocked ? '🔓' : '🔒');
     });
 
-    this.makeDraggable(el);
     this.makeResizable(el, resizer, isImageContainer);
     if (!isImageContainer && el.dataset['type'] !== 'Image') {
         this.renderer.listen(el, 'dblclick', (e) => { e.stopPropagation(); this.makeEditable(el); });
@@ -83,7 +82,6 @@ export class ElementService {
     document.execCommand('selectAll', false, undefined);
     const onBlur = () => {
         this.renderer.setAttribute(el, 'contentEditable', 'false');
-        this.getCanvasService().updateLayersPanel();
         el.removeEventListener('blur', onBlur);
         el.removeEventListener('keydown', onKeydown);
     };
@@ -114,9 +112,9 @@ export class ElementService {
             resizeMove();
         });
         const resizeMove = this.renderer.listen('window', 'mousemove', (event: MouseEvent) => {
-          const state = this.getCanvasService().getState();
-          const dx = (event.pageX - original_x) / state.zoomLevel;
-          const dy = (event.pageY - original_y) / state.zoomLevel;
+          const zoomLevel = this.getCanvasState().zoomLevel();
+          const dx = (event.pageX - original_x) / zoomLevel;
+          const dy = (event.pageY - original_y) / zoomLevel;
           const width = original_w + dx;
           const height = original_h + dy;
           if (width > 30) this.renderer.setStyle(element, 'width', width + 'px');
@@ -130,74 +128,6 @@ export class ElementService {
               }
           }
         });
-    });
-  }
-
-  makeDraggable(element: HTMLElement) {
-    this.renderer.listen(element, 'mousedown', (e: MouseEvent) => {
-      if ((e.target as HTMLElement).classList.contains('resizer') || (e.target as HTMLElement).isContentEditable) return;
-      // Add check for locked state
-      if (element.dataset['locked'] === 'true') return; // This line was added in previous step
-      e.preventDefault();
-      e.stopPropagation();
-      this.getCanvasService().selectElement(element, e.shiftKey);
-
-      const state = this.getCanvasService().getState();
-      const canvasRect = state.canvas!.getBoundingClientRect();
-      const initialMouseCanvasX = (e.clientX - canvasRect.left) / state.zoomLevel;
-      const initialMouseCanvasY = (e.clientY - canvasRect.top) / state.zoomLevel;
-      const initialPositions = state.selectedElements.map(el => ({ el: el, initialLeft: el.offsetLeft, initialTop: el.offsetTop }));
-
-      const elementDrag = (e: MouseEvent) => {
-        e.preventDefault();
-        const currentMouseCanvasX = (e.clientX - canvasRect.left) / state.zoomLevel;
-        const currentMouseCanvasY = (e.clientY - canvasRect.top) / state.zoomLevel;
-        const deltaX = currentMouseCanvasX - initialMouseCanvasX;
-        const deltaY = currentMouseCanvasY - initialMouseCanvasY;
-
-        let newLeft = initialPositions[0].initialLeft + deltaX;
-        let newTop = initialPositions[0].initialTop + deltaY;
-
-        if (state.selectedElements.length === 1) {
-          const snapThreshold = 6;
-          this.renderer.setStyle(state.snapLineV, 'display', 'none');
-          this.renderer.setStyle(state.snapLineH, 'display', 'none');
-          const otherElements = [...state.canvas!.children].filter(child => child !== element && (child as HTMLElement).classList.contains('draggable')) as HTMLElement[];
-          let closestSnap = { v: null as any, h: null as any, distV: snapThreshold, distH: snapThreshold };
-
-          for (const otherEl of otherElements) {
-            const current = { left: newLeft, right: newLeft + element.offsetWidth, hCenter: newLeft + element.offsetWidth / 2, top: newTop, bottom: newTop + element.offsetHeight, vCenter: newTop + element.offsetHeight / 2 };
-            const other = { left: otherEl.offsetLeft, right: otherEl.offsetLeft + otherEl.offsetWidth, hCenter: otherEl.offsetLeft + otherEl.offsetWidth / 2, top: otherEl.offsetTop, bottom: otherEl.offsetTop + otherEl.offsetHeight, vCenter: otherEl.offsetTop + otherEl.offsetHeight / 2 };
-            const vPoints = ['left', 'hCenter', 'right'];
-            vPoints.forEach(p1 => vPoints.forEach(p2 => { const dist = Math.abs((current as any)[p1] - (other as any)[p2]); if (dist < closestSnap.distV) { closestSnap.distV = dist; closestSnap.v = { snapLinePos: (other as any)[p2], newElementPos: newLeft - ((current as any)[p1] - (other as any)[p2]) }; } }));
-            const hPoints = ['top', 'vCenter', 'bottom'];
-            hPoints.forEach(p1 => hPoints.forEach(p2 => { const dist = Math.abs((current as any)[p1] - (other as any)[p2]); if (dist < closestSnap.distH) { closestSnap.distH = dist; closestSnap.h = { snapLinePos: (other as any)[p2], newElementPos: newTop - ((current as any)[p1] - (other as any)[p2]) }; } }));
-          }
-
-          if (closestSnap.v) { newLeft = closestSnap.v.newElementPos; this.renderer.setStyle(state.snapLineV, 'left', `${(closestSnap.v.snapLinePos * state.zoomLevel) + canvasRect.left - state.main!.getBoundingClientRect().left}px`); this.renderer.setStyle(state.snapLineV, 'display', 'block'); }
-          if (closestSnap.h) { newTop = closestSnap.h.newElementPos; this.renderer.setStyle(state.snapLineH, 'top', `${(closestSnap.h.snapLinePos * state.zoomLevel) + canvasRect.top - state.main!.getBoundingClientRect().top}px`); this.renderer.setStyle(state.snapLineH, 'display', 'block'); }
-        }
-
-        initialPositions.forEach((pos, index) => {
-          if (index === 0) {
-            this.renderer.setStyle(pos.el, 'left', `${newLeft}px`);
-            this.renderer.setStyle(pos.el, 'top', `${newTop}px`);
-          } else {
-            this.renderer.setStyle(pos.el, 'left', `${pos.initialLeft + deltaX}px`);
-            this.renderer.setStyle(pos.el, 'top', `${pos.initialTop + deltaY}px`);
-          }
-        });
-      };
-
-      const closeDragElement = () => {
-        this.renderer.setStyle(state.snapLineV, 'display', 'none');
-        this.renderer.setStyle(state.snapLineH, 'display', 'none');
-        document.removeEventListener('mousemove', elementDrag);
-        document.removeEventListener('mouseup', closeDragElement);
-      };
-
-      document.addEventListener('mousemove', elementDrag);
-      document.addEventListener('mouseup', closeDragElement);
     });
   }
 }

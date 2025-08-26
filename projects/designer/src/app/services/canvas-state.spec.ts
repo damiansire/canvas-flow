@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CanvasService } from './canvas.service';
+import { CanvasState } from './canvas-state';
 
-describe('CanvasService', () => {
-  let service: CanvasService;
+describe('CanvasState', () => {
+  let service: CanvasState;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(CanvasService);
+    service = TestBed.inject(CanvasState);
   });
 
   it('should be created', () => {

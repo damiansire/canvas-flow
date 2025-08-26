@@ -2,7 +2,6 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChang
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { CanvasService } from './services/canvas.service';
 import { ElementService } from './services/element.service';
 
 export const appConfig: ApplicationConfig = {
@@ -10,7 +9,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    CanvasService,
     ElementService
   ]
 };
