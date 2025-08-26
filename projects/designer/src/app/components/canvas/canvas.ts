@@ -27,6 +27,7 @@ export class CanvasComponent {
   }
 
   onCanvasClick(event: MouseEvent): void {
+    console.log('Canvas click event:', event.target);
     if ((event.target as HTMLElement).id === 'canvas') {
       this.state.clearSelection();
     }

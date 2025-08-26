@@ -24,6 +24,7 @@ body {
     user-select: none;
     border: 2px solid transparent;
     transition: border-color 0.2s, border-radius 0.3s;
+    pointer-events: auto !important;
 }
 .draggable.selected {
     border-color: #3b82f6;

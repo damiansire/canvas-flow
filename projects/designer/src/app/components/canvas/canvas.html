@@ -2,16 +2,62 @@
   <div #canvas id="canvas" [style.transform]="state.canvasTransform()">
     
     @for (element of state.elements(); track element.id) {
-      <div
-        [id]="element.id"
-        [className]="element.className"
-        [class.selected]="state.selectedElementIds().includes(element.id)"
-        [style]="element.style"
-        [innerHTML]="element.innerHTML"
-        [appDraggable]="element.id"
-        [appSetupElement]="element"
-        (click)="state.selectElement(element.id, $event.shiftKey)">
-      </div>
+      @switch (element.tag) {
+        @case ('div') {
+          <div
+            [id]="element.id"
+            [className]="element.className + ' draggable'"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            [style]="element.style"
+            [innerHTML]="element.innerHTML"
+            [appDraggable]="element.id"
+            [appSetupElement]="element">
+          </div>
+        }
+        @case ('button') {
+          <button
+            [id]="element.id"
+            [className]="element.className + ' draggable'"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            [style]="element.style"
+            [innerHTML]="element.innerHTML"
+            [appDraggable]="element.id"
+            [appSetupElement]="element">
+          </button>
+        }
+        @case ('h1') {
+          <h1
+            [id]="element.id"
+            [className]="element.className + ' draggable'"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            [style]="element.style"
+            [innerHTML]="element.innerHTML"
+            [appDraggable]="element.id"
+            [appSetupElement]="element">
+          </h1>
+        }
+        @case ('p') {
+          <p
+            [id]="element.id"
+            [className]="element.className + ' draggable'"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            [style]="element.style"
+            [innerHTML]="element.innerHTML"
+            [appDraggable]="element.id"
+            [appSetupElement]="element">
+          </p>
+        }
+        @case ('img') {
+          <img
+            [id]="element.id"
+            [className]="element.className + ' draggable'"
+            [class.selected]="state.selectedElementIds().includes(element.id)"
+            [style]="element.style"
+            [src]="element.src"
+            [appDraggable]="element.id"
+            [appSetupElement]="element">
+        }
+      }
     }
 
   </div>

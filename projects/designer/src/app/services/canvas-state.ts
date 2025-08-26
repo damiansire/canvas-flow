@@ -10,6 +10,7 @@ export interface CanvasElement {
   innerHTML: string;
   dataset: Record<string, string>;
   isLocked: boolean;
+  src?: string;
 }
 
 //  El Servicio de Estado con Señales 
@@ -82,6 +83,9 @@ export class CanvasStateService {
       isLocked: false,
       style: {
        ...partialElement.style,
+        position: 'absolute',
+        left: partialElement.style.left || '50px',
+        top: partialElement.style.top || '50px',
         zIndex: `${this._elements().length + 1}`
       }
     };

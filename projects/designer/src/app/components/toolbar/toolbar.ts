@@ -19,11 +19,11 @@ export class ToolbarComponent {
     switch (type) {
       case 'Button':
         element = {
-          tag: 'button',
+          tag: 'div',
           className: 'bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md',
-          innerHTML: 'Click me',
+          innerHTML: '<div class="pointer-events-none">Click me</div>',
           dataset: { type: 'Button' },
-          style: {}
+          style: { width: 'fit-content' }
         };
         break;
       case 'Title':
