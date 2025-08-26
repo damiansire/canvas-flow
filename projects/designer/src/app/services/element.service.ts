@@ -36,7 +36,7 @@ export class ElementService {
       zIndex: customStyles.zIndex || 1
     });
     Object.assign(el.dataset, { type, ...dataset });
-    el.dataset.name = dataset.name || (type === 'Image' || type === 'Box' ? type : content.substring(0, 15) + (content.length > 15 ? '...' : ''));
+    el.dataset['name'] = dataset['name'] || (type === 'Image' || type === 'Box' ? type : content.substring(0, 15) + (content.length > 15 ? '...' : ''));
     return el;
   }
 

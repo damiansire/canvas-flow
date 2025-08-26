@@ -59,6 +59,34 @@
     box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
 }
 
+/* Botón personalizado */
+#canvas .custom-button {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* Asegurar que el texto sea visible */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+#canvas .custom-button:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+}
+
+#canvas .custom-button:active {
+    transform: translateY(0);
+}
+
 /* Títulos */
 #canvas .draggable[data-type="Title"] {
     background: transparent !important;

@@ -22,10 +22,18 @@ export class ToolbarComponent {
       case 'Button':
         element = {
           tag: 'div',
-          className: 'bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg shadow-md font-medium transition-colors',
-          innerHTML: '<div class="pointer-events-none text-center">Click me</div>',
+          className: 'custom-button',
+          innerHTML: 'Click me',
           dataset: { type: 'Button' },
-          style: { width: 'fit-content', minWidth: '120px' }
+          style: {
+            width: 'fit-content',
+            minWidth: '120px',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            fontWeight: '500',
+            textAlign: 'center',
+            cursor: 'pointer'
+          }
         };
         break;
       case 'Title':

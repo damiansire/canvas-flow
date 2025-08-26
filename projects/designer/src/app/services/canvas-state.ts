@@ -91,7 +91,7 @@ export class CanvasStateService {
     };
 
     console.log('Adding new element:', newElement);
-    console.log('Element type:', partialElement.dataset?.type);
+    console.log('Element type:', partialElement.dataset?.['type']);
     console.log('Element tag:', partialElement.tag);
 
     this._elements.update(elements => [...elements, newElement]);
